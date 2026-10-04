@@ -1,0 +1,43 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      java: corretto17
+      nodejs: 20
+    commands:
+      - echo "Setting up build environment for CloudTask..."
+
+  pre_build:
+    commands:
+      - echo "Running pre-build checks..."
+      - java -version
+      - node -v
+      - npm -v
+
+  build:
+    commands:
+      - echo "Building Spring Boot Backend with Maven..."
+      - cd backend
+      - mvn clean package -DskipTests
+      - cd ..
+
+      - echo "Building Vite React Frontend..."
+      - cd frontend
+      - npm install
+      - npm run build
+      - cd ..
+
+  post_build:
+    commands:
+      - echo "Build completed successfully on $(date)"
+      - echo "Preparing artifacts for AWS CodeDeploy Blue-Green deployment..."
+
+artifacts:
+  files:
+    - 'backend/target/cloudtask-backend-1.0.0.jar'
+    - 'frontend/dist/**/*'
+    - 'appspec.yml'
+    - 'scripts/**/*'
+    - 'backend/src/main/resources/schema.sql'
+  discard-paths: no
